@@ -1,0 +1,28 @@
+﻿@typeparam TItem
+
+<table class="table">
+    <thead class="thead-dark">
+        <tr>
+            @TableHeader
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Items)
+        {
+            <tr>
+                @RowTemplate(item)
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    [Parameter]
+    public RenderFragment TableHeader { get; set; }
+
+    [Parameter]
+    public RenderFragment<TItem> RowTemplate { get; set; }
+
+    [Parameter]
+    public List<TItem> Items { get; set; }
+}
