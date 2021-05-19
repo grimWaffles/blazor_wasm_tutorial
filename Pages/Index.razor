@@ -1,5 +1,20 @@
-﻿@page "/"
+﻿@page "/home"
+@inject Blazored.LocalStorage.ILocalStorageService storageSerivice
+
 
 <h1>Hello, world!</h1>
 
-Welcome to your new app.
+@if (Token is not null)
+{
+    <span><p>Your token number is @Token</p></span>
+}
+
+@code{
+    public string Token { get; set; }
+
+    protected async override Task OnInitializedAsync()
+    {
+        this.Token = await storageSerivice.GetItemAsync<string>("token");
+
+    }
+}

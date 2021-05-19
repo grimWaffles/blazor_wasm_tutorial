@@ -104,92 +104,13 @@ using BlazorWasmTutorial.Data.API;
 #line hidden
 #nullable disable
     [Microsoft.AspNetCore.Components.RouteAttribute("/departments")]
-    public partial class Department : Microsoft.AspNetCore.Components.ComponentBase
+    public partial class Department : DepartmentBase
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
         }
         #pragma warning restore 1998
-#nullable restore
-#line 90 "D:\Work\Dev\C# DotNet\Web Apps\Blazor Tutorial\BlazorWasmTutorial\Pages\Department.razor"
-       
-
-    private BlazorWasmTutorial.Data.Models.Department department = new Data.Models.Department();
-
-    private bool updateMode { get; set; }
-
-    private List<BlazorWasmTutorial.Data.Models.Department> deptList = new List<Data.Models.Department>();
-
-    private DepartmentApi departmentService { get; set; }
-
-    protected async override Task OnInitializedAsync()
-    {
-
-        departmentService= new DepartmentApi(new HttpClient());
-
-        await LoadDepartments();
-
-        await base.OnInitializedAsync();
-    }
-
-    private async Task LoadDepartments()
-    {
-        this.deptList = await departmentService.GetDepartments();
-    }
-
-    private void ClearData()
-    {
-        department = new Data.Models.Department();
-
-        updateMode = false;
-    }
-    private async Task SaveDepartment()
-    {
-
-        if (!updateMode)
-        {
-            await departmentService.PostDepartment(department);
-        }
-        else
-        {
-            await departmentService.UpdateDepartment(department);
-        }
-
-        ClearData();
-        deptList = null;
-        await LoadDepartments();
-    }
-
-    private void LoadUpdateDataButton(int deptId)
-    {
-        var smallListDept = deptList.Where(d => d.Id == deptId).ToList();
-
-        var dept = smallListDept[0];
-
-        department.Code = dept.Code;
-        department.DepartmentName = dept.DepartmentName;
-        department.School = dept.School;
-        department.created_at = dept.created_at;
-        department.updated_at = DateTime.Now;
-
-        updateMode = true;
-    }
-
-    private async Task DeleteDepartment(int deptId)
-    {
-        await departmentService.DeleteDepartment(deptId);
-
-        deptList = null;
-
-        ClearData();
-        await LoadDepartments();
-    }
-
-#line default
-#line hidden
-#nullable disable
-        [global::Microsoft.AspNetCore.Components.InjectAttribute] private NavigationManager navManager { get; set; }
     }
 }
 #pragma warning restore 1591

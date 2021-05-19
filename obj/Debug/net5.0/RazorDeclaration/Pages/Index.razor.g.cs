@@ -103,7 +103,7 @@ using BlazorWasmTutorial.Data.API;
 #line default
 #line hidden
 #nullable disable
-    [Microsoft.AspNetCore.Components.RouteAttribute("/")]
+    [Microsoft.AspNetCore.Components.RouteAttribute("/home")]
     public partial class Index : Microsoft.AspNetCore.Components.ComponentBase
     {
         #pragma warning disable 1998
@@ -111,6 +111,21 @@ using BlazorWasmTutorial.Data.API;
         {
         }
         #pragma warning restore 1998
+#nullable restore
+#line 12 "D:\Work\Dev\C# DotNet\Web Apps\Blazor Tutorial\BlazorWasmTutorial\Pages\Index.razor"
+      
+    public string Token { get; set; }
+
+    protected async override Task OnInitializedAsync()
+    {
+        this.Token = await storageSerivice.GetItemAsync<string>("token");
+
+    }
+
+#line default
+#line hidden
+#nullable disable
+        [global::Microsoft.AspNetCore.Components.InjectAttribute] private Blazored.LocalStorage.ILocalStorageService storageSerivice { get; set; }
     }
 }
 #pragma warning restore 1591

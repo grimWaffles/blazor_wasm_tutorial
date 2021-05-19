@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,38 +13,59 @@ namespace BlazorWasmTutorial.Data.API
 {
     public class StudentApi
     {
-        private HttpClient Http;
-        public StudentApi(HttpClient client)
+        private HttpClient Http; private string AuthToken;
+
+        public StudentApi(HttpClient client,string AuthToken)
         {
             this.Http = client;
+            this.AuthToken = AuthToken;
         }
 
         public async Task<List<Student>> GetStudents()
         {
+            Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", AuthToken);
+           
+            var response = await Http.GetAsync("https://localhost:44313/api/students");
+
+            if (Convert.ToInt32(response.StatusCode) == 401)
+            {
+                return null;
+            }
+
             return await Http.GetFromJsonAsync<List<Student>>("https://localhost:44313/api/students");
         }
 
-        public async Task DeleteStudent(Student s)
+        public async Task<int> DeleteStudent(int s)
         {
-            var result = await Http.DeleteAsync("https://localhost:44313/api/students/" + s.Id);
+            Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", AuthToken);
+
+            var responseMessage = await Http.DeleteAsync("https://localhost:44313/api/students/" + s);
+
+            int responseCode = (int)responseMessage.StatusCode;
+
+            return responseCode;
         }
 
-        public async Task PostStudent(Student student)
+        public async Task<int> PostStudent(Student student)
         {
-            string json = JsonConvert.SerializeObject(student);
+            Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", AuthToken);
 
-            StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
+            var responseMessage=await Http.PostAsJsonAsync("https://localhost:44313/api/students", student);
 
-            await Http.PostAsync("https://localhost:44313/api/students", content);
+            int responseCode = (int)responseMessage.StatusCode;
+
+            return responseCode;
         }
 
-        public async Task UpdateStudent(Student student)
+        public async Task<int> UpdateStudent(Student student)
         {
-            string json = JsonConvert.SerializeObject(student);
+            Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", AuthToken);
 
-            StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
+            var responseMessage = await Http.PutAsJsonAsync("https://localhost:44313/api/students/"+student.Id, student);
 
-            await Http.PutAsync("https://localhost:44313/api/students", content);
+            int responseCode = (int)responseMessage.StatusCode;
+
+            return responseCode;
         }
     }
 }

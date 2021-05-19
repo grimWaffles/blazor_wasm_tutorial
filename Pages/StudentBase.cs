@@ -11,19 +11,23 @@ namespace BlazorWasmTutorial.Pages
     {
         [Inject]
         public NavigationManager navigationManager { get; set; }
+        [Inject]
+        public Blazored.LocalStorage.ILocalStorageService storageService { get; set; }
         public StudentApi studentService { get; set; }
-
-        protected Data.Models.Student student = new Data.Models.Student();
         protected string IdString { get; set; }
         protected string DepartmentIdString { get; set; }
+        protected bool ToUpdate { get; set; }
+        protected string Message { get; set; }
 
         protected List<Data.Models.Student> studentList = new List<Data.Models.Student>();
-
-        private bool ToUpdate { get; set; }
+        protected Data.Models.Student student = new Data.Models.Student();
+       
 
         protected async override Task OnInitializedAsync()
         {
-            studentService = new StudentApi(new System.Net.Http.HttpClient());
+            string token = await storageService.GetItemAsync<string>("token");
+
+            studentService = new StudentApi(new System.Net.Http.HttpClient(),token);
 
             await LoadStudentData();
 
@@ -32,7 +36,18 @@ namespace BlazorWasmTutorial.Pages
 
         private async Task LoadStudentData()
         {
-           this.studentList = await studentService.GetStudents();
+           var studentList = await studentService.GetStudents();
+
+            if (studentList != null)
+            {
+                this.studentList = studentList;
+            }
+            else
+            {
+                this.studentList = null;
+                await ClearCache();
+            }
+
         }
 
         protected async Task SaveStudent()
@@ -42,12 +57,32 @@ namespace BlazorWasmTutorial.Pages
 
             if (ToUpdate)
             {
-                await studentService.UpdateStudent(student);
+                int responseCode=await studentService.UpdateStudent(student);
+
+                if (responseCode == 204 || responseCode == 200)
+                {
+                    Message = "**Record updated successfully";
+                }
+                else
+                {
+                    Message = "**Failed to update record. Error Code: " + responseCode;
+
+                }
             }
             else
             {
                 student.created_at = DateTime.Now;
-                await studentService.PostStudent(student);
+                int responseCode=await studentService.PostStudent(student);
+
+                if (responseCode == 201 || responseCode == 200)
+                {
+                    Message = "**Record saved Successfully";
+                }
+                else
+                {
+                    Message = "**Failed to save record. Error Code: " + responseCode;
+
+                }
             }
 
             ToUpdate = false;
@@ -71,13 +106,22 @@ namespace BlazorWasmTutorial.Pages
 
         protected async Task DeleteStudent(int id)
         {
-            var s = studentList.Where(d => d.Id == id).ToList()[0];
+            int responseCode=await studentService.DeleteStudent(id);
 
-            await studentService.DeleteStudent(s);
+            if (responseCode == 204 || responseCode == 200)
+            {
+                Message = "**Record deleted successfully";
 
-            studentList = null;
-            ClearData();
-            await LoadStudentData();
+                studentList = new List<Data.Models.Student>();
+                ClearData();
+                await LoadStudentData();
+            }
+            else
+            {
+                Message = "**Failed to delete record. Error Code: " + responseCode;
+
+            }
+
         }
 
         protected void ClearData()
@@ -106,6 +150,16 @@ namespace BlazorWasmTutorial.Pages
                     Console.WriteLine(e.StackTrace.ToString());
                 }
             }
+        }
+
+        protected async Task ClearCache()
+        {
+            await storageService.ClearAsync();
+
+        }
+        protected void ToLoginPage()
+        {
+            navigationManager.NavigateTo("/login");
         }
 
     }

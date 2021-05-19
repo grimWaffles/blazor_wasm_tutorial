@@ -1,0 +1,107 @@
+﻿@layout LoginLayout
+@page "/"
+@page "/login"
+
+@inject NavigationManager NavigationManager
+@inject Blazored.LocalStorage.ILocalStorageService storageSerivice
+
+<center>
+    <h5><b><i><u>@PromptHeader</u></i></b></h5>
+    <div class="col-6">
+        <EditForm Model="@User" OnValidSubmit="@Login_btn_clicked">
+            <DataAnnotationsValidator />
+
+            <br />
+
+            <div class="col-12 row">
+                <label class="col-2 font-weight-bold"><i>Username:</i></label>
+                <InputText class="form-control col-3" @bind-Value="User.Username" />
+                &nbsp;<ValidationMessage For="@(()=>User.Username)" />
+            </div>
+
+            <br />
+
+            <div class="col-12 row">
+                <label class="col-2 font-weight-bold"><i>Password:</i></label>
+                <InputText class="form-control col-3" @bind-Value="User.Password" />
+                &nbsp;<ValidationMessage For="@(()=>User.Password)" />
+            </div>
+
+            <br />
+            <hr />
+        </EditForm>
+
+        <button class="btn btn-success" @onclick="Login_btn_clicked">Login</button>
+        <br />
+
+        @if (User.Token is not null)
+        {
+            <h6>@User.Token</h6>
+        }
+    </div>
+<br />
+
+</center>
+
+@code {
+    public User User = new User();
+
+    public string PromptHeader= "Enter Login Information here:";
+
+    public HttpClient Http = new HttpClient();
+
+    public bool HasUser = false;
+
+    protected async override Task OnInitializedAsync()
+    {
+        //await storageSerivice.ClearAsync();
+        string username = await storageSerivice.GetItemAsync<string>("username");
+        string password = await storageSerivice.GetItemAsync<string>("password");
+        string token = await storageSerivice.GetItemAsync<string>("token");
+
+
+        if (username is not null && token is not null)
+        {
+            User.Username = username;
+            User.Password = password;
+
+            PromptHeader = "Is this you?";
+
+            HasUser = true;
+        }
+
+        await base.OnInitializedAsync();
+    }
+
+    protected async Task Login_btn_clicked()
+    {
+        if (!HasUser)
+        {
+            var responseMessage = await Http.PostAsJsonAsync("https://localhost:44313/api/login", User);
+
+            string token = await responseMessage.Content.ReadAsStringAsync();
+            token = token.Substring(1, token.Length - 2);
+
+            if (!token.Equals("There seems to be an error!"))
+            {
+                //save info to the local storage
+
+                await storageSerivice.SetItemAsync<string>("username", User.Username);
+                await storageSerivice.SetItemAsync<string>("password", User.Password);
+                await storageSerivice.SetItemAsync<string>("token", token);
+
+                NavigationManager.NavigateTo("/home");
+
+            }
+
+            else
+            {
+                PromptHeader = "There seems to be an error!";
+            }
+        }
+        else
+        {
+            NavigationManager.NavigateTo("/home");
+        }
+    }
+}

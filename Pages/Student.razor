@@ -32,6 +32,15 @@
             </RowTemplate>
         </TableTemplate>
     }
+    else
+    {
+        <h5>You do not  have permission to view this content. Please login again.</h5>
+        <div>
+            <span class="col-2"></span>
+            <input type="submit" class="form-control col-1 btn btn-outline-dark" value="To login page!" @onclick="ToLoginPage" />
+        </div>
+
+    }
 }
 catch (Exception)
 {
@@ -89,6 +98,6 @@ catch (Exception)
     {
 
     }
-
+    <i style="color:red">@Message</i>
 
 </div>

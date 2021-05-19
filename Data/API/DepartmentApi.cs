@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,38 +13,58 @@ namespace BlazorWasmTutorial.Data.API
 {
     public class DepartmentApi
     {
-        private HttpClient Http;
-        public DepartmentApi(HttpClient client)
+        private HttpClient Http;private string AuthToken;
+        public DepartmentApi(HttpClient client,string token)
         {
             this.Http = client;
+            this.AuthToken = token;
         }
 
         public async Task<List<Department>> GetDepartments()
         {
+            Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", AuthToken);
+
+            var response= await Http.GetAsync("https://localhost:44313/api/departments");
+
+            if (Convert.ToInt32(response.StatusCode) == 401)
+            {
+                return null;
+            }
+
             return await Http.GetFromJsonAsync<List<Department>>("https://localhost:44313/api/departments");
         }
 
-        public async Task PostDepartment(Department department)
+        public async Task<int> PostDepartment(Department department)
         {
-            string json = JsonConvert.SerializeObject(department);
+            Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", AuthToken);
 
-            StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
+            var responseMessage = await Http.PostAsJsonAsync("https://localhost:44313/api/departments", department);
 
-            var res=await Http.PostAsync("https://localhost:44313/api/students", content);
+            int responseCode = (int)responseMessage.StatusCode;
+
+            return responseCode;
         }
 
-        public async Task UpdateDepartment(Department department)
+        public async Task<int> UpdateDepartment(Department department)
         {
-            string json = JsonConvert.SerializeObject(department);
+            Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", AuthToken);
 
-            StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
+            var responseMessage = await Http.PutAsJsonAsync("https://localhost:44313/api/departments/" + department.Id, department);
 
-            var res=await Http.PutAsync("https://localhost:44313/api/students", content);
+            int responseCode = (int)responseMessage.StatusCode;
+
+            return responseCode;
         }
 
-        public async Task DeleteDepartment(int id)
+        public async Task<int> DeleteDepartment(int id)
         {
-            var result = await Http.DeleteAsync("https://localhost:44313/api/departments/" + id);
+            Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", AuthToken);
+
+            var responseMessage = await Http.DeleteAsync("https://localhost:44313/api/departments/"+id);
+
+            int responseCode = (int)responseMessage.StatusCode;
+
+            return responseCode;
         }
     }
 }
