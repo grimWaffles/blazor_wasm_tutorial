@@ -10,12 +10,14 @@
     @if (deptList != null) { 
         <TableTemplate Items="deptList.ToList()" TItem="Data.Models.Department">
             <TableHeader>
+                <th scope="col">Id</th>
                 <th scope="col">Code</th>
                 <th scope="col">DepartmentName</th>
                 <th scope="col">School</th>
                 <th scope="col">Actions</th>
             </TableHeader>
             <RowTemplate>
+                <td>@context.Id</td>
                 <td><a href="#">@context.Code</a></td>
                 <td>@context.DepartmentName</td>
                 <td>@context.School</td>

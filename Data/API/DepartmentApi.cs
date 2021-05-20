@@ -24,14 +24,24 @@ namespace BlazorWasmTutorial.Data.API
         {
             Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", AuthToken);
 
+            //entire response payload
             var response= await Http.GetAsync("https://localhost:44313/api/departments");
 
-            if (Convert.ToInt32(response.StatusCode) == 401)
+            //The response status code we receive
+            int responseCode = Convert.ToInt32(response.StatusCode);
+
+            if (responseCode == 401)//Not found
             {
                 return null;
             }
+            else
+            {
+                //The actual data we want from it
+                List<Department> depts = await response.Content.ReadFromJsonAsync<List<Department>>();
+                return depts;
+            }
 
-            return await Http.GetFromJsonAsync<List<Department>>("https://localhost:44313/api/departments");
+            //return await Http.GetFromJsonAsync<List<Department>>("https://localhost:44313/api/departments");
         }
 
         public async Task<int> PostDepartment(Department department)
